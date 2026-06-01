@@ -27,6 +27,7 @@ const rankingList = document.getElementById("rankingList");
 const toggleDetails = document.getElementById("toggleDetails");
 const detailArea = document.getElementById("detailArea");
 const detailBody = document.getElementById("detailBody");
+const closeDetails = document.getElementById("closeDetails");
 const newRound = document.getElementById("newRound");
 const resetData = document.getElementById("resetData");
 
@@ -336,14 +337,24 @@ holeSelect.addEventListener("change", () => {
   renderAll();
 });
 
+function setDetailsVisible(isVisible) {
+  detailArea.classList.toggle("hidden", !isVisible);
+  document.body.classList.toggle("detail-open", isVisible);
+  toggleDetails.setAttribute("aria-expanded", String(isVisible));
+  toggleDetails.textContent = isVisible ? "詳細を閉じる" : "詳細表示";
+}
+
 toggleDetails.addEventListener("click", () => {
-  const isHidden = detailArea.classList.toggle("hidden");
-  toggleDetails.setAttribute("aria-expanded", String(!isHidden));
-  toggleDetails.textContent = isHidden ? "詳細表示" : "詳細を閉じる";
+  setDetailsVisible(detailArea.classList.contains("hidden"));
+});
+
+closeDetails.addEventListener("click", () => {
+  setDetailsVisible(false);
 });
 
 newRound.addEventListener("click", () => {
   if (!confirm("現在の入力内容を保存したまま、新しいラウンド設定画面へ戻りますか？")) return;
+  setDetailsVisible(false);
   showSetup();
 });
 
@@ -354,6 +365,7 @@ resetData.addEventListener("click", () => {
   state.scores = [];
   state.completedHoles = Array(HOLE_COUNT).fill(false);
   state.currentHole = 0;
+  setDetailsVisible(false);
   showSetup();
 });
 
