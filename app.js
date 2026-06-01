@@ -288,47 +288,68 @@ function renderMemberPaymentCards(ranking, allPlayerTotal, playerCount) {
   return section;
 }
 
+function createHoleDetailCard(holeScores, holeIndex) {
+  const card = document.createElement("article");
+  card.className = "hole-detail-card";
+
+  const header = document.createElement("div");
+  header.className = "hole-detail-header";
+
+  const title = document.createElement("h4");
+  title.textContent = `${holeIndex + 1}H`;
+
+  const holeTotal = holeScores.reduce((sum, score) => sum + normalizeNumber(score), 0);
+  const total = document.createElement("span");
+  total.textContent = `合計 ${formatSignedValue(holeTotal)} pt`;
+
+  header.append(title, total);
+
+  const list = document.createElement("dl");
+  list.className = "hole-member-list";
+
+  state.players.forEach((name, playerIndex) => {
+    const rawScore = holeScores[playerIndex];
+    const point = normalizeNumber(rawScore);
+    const valueClass = point > 0 ? "is-positive" : point < 0 ? "is-negative" : "";
+
+    const term = document.createElement("dt");
+    term.textContent = name;
+
+    const description = document.createElement("dd");
+    description.className = valueClass;
+    description.textContent = isScoreEntered(rawScore) ? `${formatSignedValue(point)} pt` : "未入力";
+
+    list.append(term, description);
+  });
+
+  card.append(header, list);
+  return card;
+}
+
+function createHoleColumn(titleText, startIndex, endIndex) {
+  const column = document.createElement("div");
+  column.className = "hole-column";
+
+  const title = document.createElement("h4");
+  title.className = "hole-column-title";
+  title.textContent = titleText;
+  column.appendChild(title);
+
+  state.scores.slice(startIndex, endIndex).forEach((holeScores, offset) => {
+    column.appendChild(createHoleDetailCard(holeScores, startIndex + offset));
+  });
+
+  return column;
+}
+
 function renderHoleListCards() {
   const { section, content } = createDetailSection("ホール別一覧");
   content.classList.add("hole-list-content");
 
-  state.scores.forEach((holeScores, holeIndex) => {
-    const card = document.createElement("article");
-    card.className = "hole-detail-card";
-
-    const header = document.createElement("div");
-    header.className = "hole-detail-header";
-
-    const title = document.createElement("h4");
-    title.textContent = `${holeIndex + 1}H`;
-
-    const holeTotal = holeScores.reduce((sum, score) => sum + normalizeNumber(score), 0);
-    const total = document.createElement("span");
-    total.textContent = `合計 ${formatSignedValue(holeTotal)} pt`;
-
-    header.append(title, total);
-
-    const list = document.createElement("dl");
-    list.className = "hole-member-list";
-
-    state.players.forEach((name, playerIndex) => {
-      const rawScore = holeScores[playerIndex];
-      const point = normalizeNumber(rawScore);
-      const valueClass = point > 0 ? "is-positive" : point < 0 ? "is-negative" : "";
-
-      const term = document.createElement("dt");
-      term.textContent = name;
-
-      const description = document.createElement("dd");
-      description.className = valueClass;
-      description.textContent = isScoreEntered(rawScore) ? `${formatSignedValue(point)} pt` : "未入力";
-
-      list.append(term, description);
-    });
-
-    card.append(header, list);
-    content.appendChild(card);
-  });
+  content.append(
+    createHoleColumn("1-9H", 0, 9),
+    createHoleColumn("10-18H", 9, HOLE_COUNT),
+  );
 
   return section;
 }

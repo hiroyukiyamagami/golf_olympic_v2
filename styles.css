@@ -522,6 +522,26 @@ body.detail-open::before {
 
 .hole-list-content {
   grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+}
+
+.hole-column {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+}
+
+.hole-column-title {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  margin: 0;
+  padding: 5px 6px;
+  border-radius: 10px;
+  background: var(--green);
+  color: #fff;
+  font-size: 0.78rem;
+  text-align: center;
 }
 
 .hole-detail-card {
@@ -582,6 +602,15 @@ body.detail-open::before {
 
 @media (max-width: 390px) {
   .hole-list-content {
-    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+
+  .hole-detail-card {
+    padding: 7px 6px;
+  }
+
+  .hole-member-list dt,
+  .hole-member-list dd {
+    font-size: 0.68rem;
   }
 }
