@@ -94,6 +94,7 @@ function renderNameFields(count, names = []) {
   const numericCount = Number(count);
   const safeCount = Number.isFinite(numericCount) && numericCount > 0 ? clamp(numericCount, 1, 12) : 0;
   playerCountInput.value = safeCount ? String(safeCount) : "";
+
   nameFields.innerHTML = "";
 
   for (let index = 0; index < safeCount; index += 1) {
@@ -170,6 +171,7 @@ function renderScoreInputs() {
     input.addEventListener("input", () => {
       state.scores[state.currentHole][playerIndex] = normalizeScoreInput(input.value);
       state.completedHoles[state.currentHole] = state.scores[state.currentHole].some((score) => isScoreEntered(score));
+
       saveState.textContent = "保存中...";
       saveStateToStorage();
       renderAll(false);
@@ -232,6 +234,7 @@ function renderDetails() {
       const cell = document.createElement("td");
       const rawScore = holeScores[player.playerIndex];
       cell.textContent = isScoreEntered(rawScore) ? normalizeNumber(rawScore) : "";
+
       row.appendChild(cell);
     });
 
@@ -268,6 +271,7 @@ function showSetup(names = []) {
   scorePanel.classList.add("hidden");
   setupPanel.classList.remove("hidden");
   renderNameFields(names.length || "", names);
+
 }
 
 makeNameFieldsButton.addEventListener("click", () => {
@@ -283,6 +287,7 @@ setupForm.addEventListener("submit", (event) => {
     return;
   }
   const names = nameInputs.map((input, index) => input.value.trim() || `メンバー${index + 1}`);
+
   startRound(names);
 });
 
@@ -313,6 +318,7 @@ toggleDetails.addEventListener("click", () => {
 newRound.addEventListener("click", () => {
   if (!confirm("現在の入力内容を保存したまま、新しいラウンド設定画面へ戻りますか？")) return;
   showSetup();
+
 });
 
 resetData.addEventListener("click", () => {
