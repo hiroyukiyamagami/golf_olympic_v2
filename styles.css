@@ -498,3 +498,90 @@ body.detail-open::before {
     grid-template-columns: 1fr 96px;
   }
 }
+
+.detail-section {
+  display: grid;
+  gap: 8px;
+}
+
+.detail-section + .detail-section {
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+}
+
+.detail-section-title {
+  margin: 0;
+  color: var(--green-dark);
+  font-size: 0.92rem;
+}
+
+.detail-section-content {
+  display: grid;
+  gap: 8px;
+}
+
+.hole-list-content {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.hole-detail-card {
+  display: grid;
+  gap: 6px;
+  padding: 8px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fff;
+}
+
+.hole-detail-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.hole-detail-header h4 {
+  margin: 0;
+  color: var(--green-dark);
+  font-size: 0.95rem;
+}
+
+.hole-detail-header span {
+  color: var(--muted);
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+
+.hole-member-list {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 4px 6px;
+  margin: 0;
+}
+
+.hole-member-list dt,
+.hole-member-list dd {
+  min-width: 0;
+  margin: 0;
+  font-size: 0.72rem;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.hole-member-list dt {
+  overflow: hidden;
+  color: var(--ink);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hole-member-list dd {
+  color: var(--muted);
+  text-align: right;
+}
+
+@media (max-width: 390px) {
+  .hole-list-content {
+    grid-template-columns: 1fr;
+  }
+}

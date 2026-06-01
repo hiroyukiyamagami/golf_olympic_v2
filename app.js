@@ -220,12 +220,23 @@ function formatSignedValue(value) {
   return value > 0 ? `+${value}` : String(value);
 }
 
-function renderDetails() {
-  detailBody.innerHTML = "";
+function createDetailSection(titleText) {
+  const section = document.createElement("section");
+  section.className = "detail-section";
 
-  const ranking = getRanking();
-  const allPlayerTotal = ranking.reduce((sum, player) => sum + player.total, 0);
-  const playerCount = state.players.length;
+  const title = document.createElement("h3");
+  title.className = "detail-section-title";
+  title.textContent = titleText;
+
+  const content = document.createElement("div");
+  content.className = "detail-section-content";
+
+  section.append(title, content);
+  return { section, content };
+}
+
+function renderMemberPaymentCards(ranking, allPlayerTotal, playerCount) {
+  const { section, content } = createDetailSection("メンバー別支払額");
 
   ranking.forEach((player) => {
     const card = document.createElement("article");
@@ -271,8 +282,68 @@ function renderDetails() {
     }
 
     card.append(header, holes);
-    detailBody.appendChild(card);
+    content.appendChild(card);
   });
+
+  return section;
+}
+
+function renderHoleListCards() {
+  const { section, content } = createDetailSection("ホール別一覧");
+  content.classList.add("hole-list-content");
+
+  state.scores.forEach((holeScores, holeIndex) => {
+    const card = document.createElement("article");
+    card.className = "hole-detail-card";
+
+    const header = document.createElement("div");
+    header.className = "hole-detail-header";
+
+    const title = document.createElement("h4");
+    title.textContent = `${holeIndex + 1}H`;
+
+    const holeTotal = holeScores.reduce((sum, score) => sum + normalizeNumber(score), 0);
+    const total = document.createElement("span");
+    total.textContent = `合計 ${formatSignedValue(holeTotal)} pt`;
+
+    header.append(title, total);
+
+    const list = document.createElement("dl");
+    list.className = "hole-member-list";
+
+    state.players.forEach((name, playerIndex) => {
+      const rawScore = holeScores[playerIndex];
+      const point = normalizeNumber(rawScore);
+      const valueClass = point > 0 ? "is-positive" : point < 0 ? "is-negative" : "";
+
+      const term = document.createElement("dt");
+      term.textContent = name;
+
+      const description = document.createElement("dd");
+      description.className = valueClass;
+      description.textContent = isScoreEntered(rawScore) ? `${formatSignedValue(point)} pt` : "未入力";
+
+      list.append(term, description);
+    });
+
+    card.append(header, list);
+    content.appendChild(card);
+  });
+
+  return section;
+}
+
+function renderDetails() {
+  detailBody.innerHTML = "";
+
+  const ranking = getRanking();
+  const allPlayerTotal = ranking.reduce((sum, player) => sum + player.total, 0);
+  const playerCount = state.players.length;
+
+  detailBody.append(
+    renderMemberPaymentCards(ranking, allPlayerTotal, playerCount),
+    renderHoleListCards(),
+  );
 }
 
 function renderAll(includeInputs = true) {
