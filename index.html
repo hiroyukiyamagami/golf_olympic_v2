@@ -18,7 +18,6 @@
         <label class="field-label" for="playerCount">プレー人数</label>
         <div class="count-row">
           <input id="playerCount" type="number" inputmode="numeric" min="1" max="12" step="1" placeholder="例：4" aria-describedby="countHelp">
-
           <button id="makeNameFields" type="button" class="button secondary">名前欄を作成</button>
         </div>
         <p id="countHelp" class="hint">1〜12人まで。人数変更後に名前欄を作成してください。</p>
@@ -74,13 +73,14 @@
       </section>
 
       <section id="detailArea" class="panel detail-panel hidden" aria-label="ホール別ポイント詳細">
-        <h2>ホール別一覧</h2>
-        <div class="detail-scroll">
-          <table class="detail-table">
-            <thead id="detailHead"></thead>
-            <tbody id="detailBody"></tbody>
-          </table>
+        <div class="section-title-row compact-title">
+          <div>
+            <h2>ホール別一覧・支払額</h2>
+            <span class="detail-note">支払額 = 個人pt × 人数 - 全員pt</span>
+          </div>
+          <button id="closeDetails" type="button" class="text-button close-detail-button">閉じる</button>
         </div>
+        <div id="detailBody" class="detail-cards"></div>
       </section>
 
       <section class="action-bar" aria-label="操作ボタン">

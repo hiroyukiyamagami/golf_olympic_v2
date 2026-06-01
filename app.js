@@ -26,8 +26,8 @@ const saveState = document.getElementById("saveState");
 const rankingList = document.getElementById("rankingList");
 const toggleDetails = document.getElementById("toggleDetails");
 const detailArea = document.getElementById("detailArea");
-const detailHead = document.getElementById("detailHead");
 const detailBody = document.getElementById("detailBody");
+const closeDetails = document.getElementById("closeDetails");
 const newRound = document.getElementById("newRound");
 const resetData = document.getElementById("resetData");
 
@@ -80,7 +80,7 @@ function loadStateFromStorage() {
       });
       state.completedHoles[holeIndex] = Array.isArray(saved.completedHoles)
         ? Boolean(saved.completedHoles[holeIndex])
-        : state.scores[holeIndex].some((score) => normalizeNumber(score) !== 0);
+        : state.scores[holeIndex].some((score) => isScoreEntered(score));
     });
     state.currentHole = clamp(Number(saved.currentHole) || 0, 0, HOLE_COUNT - 1);
     return true;
@@ -94,7 +94,6 @@ function renderNameFields(count, names = []) {
   const numericCount = Number(count);
   const safeCount = Number.isFinite(numericCount) && numericCount > 0 ? clamp(numericCount, 1, 12) : 0;
   playerCountInput.value = safeCount ? String(safeCount) : "";
-
   nameFields.innerHTML = "";
 
   for (let index = 0; index < safeCount; index += 1) {
@@ -171,7 +170,6 @@ function renderScoreInputs() {
     input.addEventListener("input", () => {
       state.scores[state.currentHole][playerIndex] = normalizeScoreInput(input.value);
       state.completedHoles[state.currentHole] = state.scores[state.currentHole].some((score) => isScoreEntered(score));
-
       saveState.textContent = "保存中...";
       saveStateToStorage();
       renderAll(false);
@@ -204,44 +202,76 @@ function renderRanking() {
   });
 }
 
+function createMetaItem(label, value, extraClass = "") {
+  const item = document.createElement("div");
+  item.className = `detail-meta-item ${extraClass}`.trim();
+
+  const labelElement = document.createElement("span");
+  labelElement.textContent = label;
+
+  const valueElement = document.createElement("strong");
+  valueElement.textContent = value;
+
+  item.append(labelElement, valueElement);
+  return item;
+}
+
+function formatSignedValue(value) {
+  return value > 0 ? `+${value}` : String(value);
+}
+
 function renderDetails() {
-  detailHead.innerHTML = "";
   detailBody.innerHTML = "";
 
-  const headRow = document.createElement("tr");
-  const playerHeader = document.createElement("th");
-  playerHeader.textContent = "メンバー";
-  headRow.appendChild(playerHeader);
+  const ranking = getRanking();
+  const allPlayerTotal = ranking.reduce((sum, player) => sum + player.total, 0);
+  const playerCount = state.players.length;
 
-  for (let hole = 1; hole <= HOLE_COUNT; hole += 1) {
-    const th = document.createElement("th");
-    th.textContent = `${hole}H`;
-    headRow.appendChild(th);
-  }
+  ranking.forEach((player) => {
+    const card = document.createElement("article");
+    card.className = "detail-card";
 
-  const totalHeader = document.createElement("th");
-  totalHeader.textContent = "合計";
-  headRow.appendChild(totalHeader);
-  detailHead.appendChild(headRow);
+    const header = document.createElement("div");
+    header.className = "detail-card-header";
 
-  getRanking().forEach((player) => {
-    const row = document.createElement("tr");
-    const nameCell = document.createElement("td");
-    nameCell.textContent = player.name;
-    row.appendChild(nameCell);
+    const name = document.createElement("h3");
+    name.textContent = player.name;
 
-    state.scores.forEach((holeScores) => {
-      const cell = document.createElement("td");
+    const meta = document.createElement("div");
+    meta.className = "detail-meta";
+
+    const payment = player.total * playerCount - allPlayerTotal;
+    const paymentClass = payment > 0 ? "is-positive" : payment < 0 ? "is-negative" : "";
+    meta.append(
+      createMetaItem("合計", `${player.total} pt`),
+      createMetaItem("支払額", formatSignedValue(payment), paymentClass),
+    );
+
+    header.append(name, meta);
+
+    const holes = document.createElement("div");
+    holes.className = "hole-chip-grid";
+
+    state.scores.forEach((holeScores, holeIndex) => {
       const rawScore = holeScores[player.playerIndex];
-      cell.textContent = isScoreEntered(rawScore) ? normalizeNumber(rawScore) : "";
+      if (!isScoreEntered(rawScore)) return;
 
-      row.appendChild(cell);
+      const point = normalizeNumber(rawScore);
+      const chip = document.createElement("span");
+      chip.className = `hole-chip ${point > 0 ? "is-positive" : point < 0 ? "is-negative" : ""}`.trim();
+      chip.textContent = `${holeIndex + 1}H ${formatSignedValue(point)}`;
+      holes.appendChild(chip);
     });
 
-    const totalCell = document.createElement("td");
-    totalCell.textContent = player.total;
-    row.appendChild(totalCell);
-    detailBody.appendChild(row);
+    if (holes.children.length === 0) {
+      const empty = document.createElement("p");
+      empty.className = "empty-detail";
+      empty.textContent = "入力済みポイントはまだありません。";
+      holes.appendChild(empty);
+    }
+
+    card.append(header, holes);
+    detailBody.appendChild(card);
   });
 }
 
@@ -271,7 +301,6 @@ function showSetup(names = []) {
   scorePanel.classList.add("hidden");
   setupPanel.classList.remove("hidden");
   renderNameFields(names.length || "", names);
-
 }
 
 makeNameFieldsButton.addEventListener("click", () => {
@@ -287,7 +316,6 @@ setupForm.addEventListener("submit", (event) => {
     return;
   }
   const names = nameInputs.map((input, index) => input.value.trim() || `メンバー${index + 1}`);
-
   startRound(names);
 });
 
@@ -309,16 +337,25 @@ holeSelect.addEventListener("change", () => {
   renderAll();
 });
 
+function setDetailsVisible(isVisible) {
+  detailArea.classList.toggle("hidden", !isVisible);
+  document.body.classList.toggle("detail-open", isVisible);
+  toggleDetails.setAttribute("aria-expanded", String(isVisible));
+  toggleDetails.textContent = isVisible ? "詳細を閉じる" : "詳細表示";
+}
+
 toggleDetails.addEventListener("click", () => {
-  const isHidden = detailArea.classList.toggle("hidden");
-  toggleDetails.setAttribute("aria-expanded", String(!isHidden));
-  toggleDetails.textContent = isHidden ? "詳細表示" : "詳細を閉じる";
+  setDetailsVisible(detailArea.classList.contains("hidden"));
+});
+
+closeDetails.addEventListener("click", () => {
+  setDetailsVisible(false);
 });
 
 newRound.addEventListener("click", () => {
   if (!confirm("現在の入力内容を保存したまま、新しいラウンド設定画面へ戻りますか？")) return;
+  setDetailsVisible(false);
   showSetup();
-
 });
 
 resetData.addEventListener("click", () => {
@@ -328,6 +365,7 @@ resetData.addEventListener("click", () => {
   state.scores = [];
   state.completedHoles = Array(HOLE_COUNT).fill(false);
   state.currentHole = 0;
+  setDetailsVisible(false);
   showSetup();
 });
 
