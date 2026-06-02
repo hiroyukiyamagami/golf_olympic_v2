@@ -318,7 +318,6 @@ function createHoleDetailCard(holeScores, holeIndex) {
     const description = document.createElement("dd");
     description.className = valueClass;
     description.textContent = isScoreEntered(rawScore) ? `${formatSignedValue(point)} pt` : "";
-
     list.append(term, description);
   });
 
